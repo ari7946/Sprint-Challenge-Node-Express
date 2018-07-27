@@ -36,7 +36,7 @@ server.post('/api/projects', (req, res) => {
   if ( !name || !description ) return sendUserError(400, "name and description are required", res);
   projects
     .insert({ name, description, completed })
-    .then((result) => res.status(200).json({ result }))
+    .then((result) => res.status(201).json({ result }))
     .catch(() => sendUserError(500, "Project could not be added", res));
 })
 
@@ -60,6 +60,26 @@ server.delete('/api/projects/:id', (req, res) => {
     .catch(() => sendUserError(500, "There was an error while deleting the project", res));
 })
 
+server.put('/api/projects/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, description, completed } = req.body;
+  projects
+    .get(id)
+    .then(project => {
+      if (!project) {
+        return sendUserError(404, "The specified Project could not be found", res);
+      } else {
+        if (!name || !description ) {
+          return sendUserError(400, "Name and Description are required", res);
+        }
+        projects
+          .update(id, { name, description, completed })
+          .then(updated => res.status(200).json(updated))
+          .catch(err => sendUserError(500, "There was an error in updating project", res));  
+      }
+    });
+})
+
 // ! ========================= Actions
 
 server.get('/api/actions', (req, res) => {
@@ -77,7 +97,7 @@ server.post('/api/actions', (req, res) => {
   if ( !description || !project_id ) return sendUserError(400, "Project id and description are required", res);
   actions
     .insert({ project_id, description, notes, completed })
-    .then((result) => res.status(200).json({ result }))
+    .then((result) => res.status(201).json({ result }))
     .catch(() => sendUserError(500, "Action could not be added", res));
 })
 
@@ -87,7 +107,7 @@ server.get('/api/actions/:id', (req, res) => {
     .get(id)
     .then(action => {
       console.log(action)
-      if (!action) return sendUserError(404, "action could not be found", res);
+      if (action === 0) return sendUserError(404, "action could not be found", res);
       return res.status(200).json({ action })
     })
     .catch(() => sendUserError(500, "The action can not be retrieved"));
@@ -100,6 +120,30 @@ server.delete('/api/actions/:id', (req, res) => {
     .then(() => res.json({success: `action with id: ${id} was deleted`}))
     .catch(() => sendUserError(500, "There was an error while deleting the action", res));
 })
+
+server.put('/api/actions/:id', (req, res) => {
+  const { id } = req.params;
+  const { project_id, description, notes, completed } = req.body;
+  actions
+    .get(id)
+    .then(action => {
+      if (!action) {
+        return sendUserError(404, "The specified Project could not be found", res);
+      } else {
+        if (!project_id || !description || !notes) {
+          return sendUserError(400, "Project id, description, and notes are required", res);
+        }
+        actions
+          .update(id, { project_id, description, notes, completed })
+          .then(updated => res.status(200).json(updated))
+          .catch(err => sendUserError(500, "There was an error in updating action", res));  
+      }
+    });
+})
+
+
+
+
 
 
 
