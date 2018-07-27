@@ -14,6 +14,17 @@ const sendUserError = (status, message, res) => {
   return;
 }
 
+// ============= Custom middleware ====================== //
+
+const checkDescription = (req, res, next) => {
+  const { description } = req.body;
+  if (description.length > 128) {
+    sendUserError(400, "Description limit is 128 characters", res);
+  } else {
+    next();
+  }
+}
+
 // ! ====================== Projects
 server.get('/api/projects', (req, res) => {
   projects
@@ -30,7 +41,7 @@ server.get('/api/projects', (req, res) => {
     });
 })
 
-server.post('/api/projects', (req, res) => {
+server.post('/api/projects', checkDescription, (req, res) => {
   //console.log(req.body);
   const { name, description, completed } = req.body;
   if ( !name || !description ) return sendUserError(400, "name and description are required", res);
@@ -92,12 +103,12 @@ server.get('/api/actions', (req, res) => {
     .catch(err => sendUserError(500, "There was an error in getting actions", res));
 })
 
-server.post('/api/actions', (req, res) => {
+server.post('/api/actions', checkDescription, (req, res) => {
   const { project_id, description, notes, completed } = req.body;
   if ( !description || !project_id ) return sendUserError(400, "Project id and description are required", res);
   actions
     .insert({ project_id, description, notes, completed })
-    .then((result) => res.status(201).json({ result }))
+    .then((newAction) => res.status(201).json({ newAction }))
     .catch(() => sendUserError(500, "Action could not be added", res));
 })
 
