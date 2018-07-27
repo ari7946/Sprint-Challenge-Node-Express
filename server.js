@@ -7,7 +7,7 @@ const server = express();
 //const router = express.Router();
 
 server.use(express.json());
-server.use(cors({ origin: 'http://localhost:3000'}));
+server.use(cors({ origin: 'http://localhost:3000' }));
 
 const sendUserError = (status, message, res) => {
   res.status(status).json({ error: message });
